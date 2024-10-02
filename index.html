@@ -60,14 +60,32 @@
     </div>
 
     <script>
-        // Simple obfuscation logic (replace this with your real obfuscation logic)
-        function simpleObfuscate(script) {
+        // Simple obfuscation logic
+        function obfuscateScript(script) {
             if (typeof script !== 'string' || script.trim() === '') {
                 return 'Error: Invalid input. Please enter a Lua script.';
             }
 
-            // Example obfuscation logic (reverses the script as a demo)
-            return script.split('').reverse().join('');
+            // Example obfuscation logic
+            const variableNameMap = {};
+            let obfuscatedScript = script;
+
+            // Replace variable names with random names
+            let variableCount = 0;
+            obfuscatedScript = obfuscatedScript.replace(/([a-zA-Z_][a-zA-Z0-9_]*)/g, function(variableName) {
+                if (!variableNameMap[variableName]) {
+                    const obfuscatedName = `var_${variableCount++}`;
+                    variableNameMap[variableName] = obfuscatedName;
+                }
+                return variableNameMap[variableName];
+            });
+
+            // Encode string literals (basic example)
+            obfuscatedScript = obfuscatedScript.replace(/(['"])(.*?)\1/g, function(match, p1, p2) {
+                return p1 + btoa(p2) + p1; // Base64 encode string
+            });
+
+            return obfuscatedScript;
         }
 
         // Function to trigger file download
@@ -92,14 +110,15 @@
             }
 
             // Call the obfuscation function
-            const obfuscatedScript = simpleObfuscate(luaScript);
+            const obfuscatedScript = obfuscateScript(luaScript);
 
             // Create a download button for the obfuscated script
             const downloadButton = document.getElementById('downloadButton');
             downloadButton.style.display = 'inline-block';
-            downloadButton.addEventListener('click', function() {
-                downloadFile('obfuscated_script.lua', obfuscatedScript);
-            });
+            downloadButton.onclick = function() {
+                // Change the file extension to .txt
+                downloadFile('obfuscated_script.txt', obfuscatedScript);
+            };
         });
     </script>
 
