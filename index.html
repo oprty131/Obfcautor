@@ -3,51 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lua Code Obfuscator</title>
+    <title>Lua Obfuscator</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 20px;
+            padding: 20px;
         }
         textarea {
             width: 100%;
             height: 200px;
         }
-        button {
-            margin-top: 10px;
-        }
     </style>
 </head>
 <body>
-    <h1>Lua Code Obfuscator</h1>
-    <textarea id="inputCode" placeholder="Enter your Lua code here..."></textarea>
-    <br>
-    <button onclick="obfuscateCode()">Obfuscate</button>
-    <br>
-    <textarea id="outputCode" readonly placeholder="Obfuscated code will appear here..."></textarea>
-    <br>
-    <button onclick="downloadObfuscated()">Download Obfuscated Script</button>
 
-    <script>
-        function obfuscateCode() {
-            let inputCode = document.getElementById("inputCode").value;
-            let obfuscatedCode = `-- This file was generated using Custom Obfuscator\n\n` +
-                `return(function(S,v,G,p,t,H,X,A,O,L,D,i,s,l,r,y,a,T,h,M,k,I,j,Y,Q,Z,b,q,B,R,P,u,W,c,o,n,V,e,N)e={};local U,E,K,_=1.0,0X68;\n` +
-                `-- Obfuscated version of your Lua code below\n` +
-                inputCode.split('').map(c => c.charCodeAt(0).toString(16)).join(' ') + `\n` +
-                `end)()`;
+<h1>Basic Lua Obfuscator</h1>
+<textarea id="input" placeholder="Paste your Lua code here"></textarea>
+<br>
+<button onclick="obfuscate()">Obfuscate</button>
+<h2>Obfuscated Code</h2>
+<textarea id="output"></textarea>
 
-            document.getElementById("outputCode").value = obfuscatedCode;
-        }
+<script>
+    function obfuscate() {
+        let code = document.getElementById("input").value;
+        let obfuscatedCode = basicObfuscate(code);
+        document.getElementById("output").value = obfuscatedCode;
+    }
 
-        function downloadObfuscated() {
-            let obfuscatedCode = document.getElementById("outputCode").value;
-            let blob = new Blob([obfuscatedCode], { type: "text/plain" });
-            let link = document.createElement("a");
-            link.href = URL.createObjectURL(blob);
-            link.download = "obfuscated_script.txt";
-            link.click();
-        }
-    </script>
+    function basicObfuscate(code) {
+        // Example of basic obfuscation techniques
+        // 1. Random variable names
+        code = code.replace(/\b(\w+)\b/g, function(match) {
+            return Math.random().toString(36).substring(2, 7);
+        });
+
+        // 2. Random number replacement
+        code = code.replace(/\b(\d+)\b/g, function() {
+            return Math.floor(Math.random() * 1000);
+        });
+
+        // 3. Replace strings with encoded strings
+        code = code.replace(/(".*?")/g, function(match) {
+            return 'decodeString("' + btoa(match) + '")';
+        });
+
+        // Wrap the code in an anonymous function
+        code = `return(function() ${code} end)()`;
+
+        return code;
+    }
+
+    function decodeString(encoded) {
+        return atob(encoded);
+    }
+</script>
+
 </body>
 </html>
