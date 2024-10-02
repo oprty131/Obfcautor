@@ -7,79 +7,87 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            text-align: center;
-            background-color: #f0f0f0;
+            margin: 20px;
+            background-color: #f4f4f9;
         }
         .container {
-            margin: 50px auto;
-            width: 50%;
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #fff;
             padding: 20px;
-            background-color: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
         textarea {
             width: 100%;
             height: 200px;
             padding: 10px;
-            border-radius: 5px;
             border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 20px;
         }
         button {
             padding: 10px 20px;
-            background-color: #28a745;
+            background-color: #007bff;
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 4px;
             cursor: pointer;
-            margin-top: 20px;
         }
         button:hover {
-            background-color: #218838;
+            background-color: #0056b3;
         }
-        .result {
-            margin-top: 20px;
+        pre {
+            background-color: #f0f0f0;
             padding: 10px;
-            background-color: #f8f9fa;
-            border: 1px solid #ddd;
-            border-radius: 5px;
+            border-radius: 4px;
+            white-space: pre-wrap;
             word-wrap: break-word;
         }
     </style>
 </head>
 <body>
+
     <div class="container">
-        <h1>Lua Script Obfuscator</h1>
-        <p>Enter your Roblox Lua script below to obfuscate:</p>
+        <h2>Lua Script Obfuscator</h2>
         <form id="obfuscator-form">
-            <textarea id="luaScript" placeholder="Enter your Lua script here"></textarea>
-            <br>
+            <label for="luaScript">Enter your Lua script:</label>
+            <textarea id="luaScript" placeholder="Paste your Lua script here..."></textarea>
             <button type="submit">Obfuscate</button>
         </form>
-        <div class="result" id="result"></div>
+
+        <h3>Obfuscated Script:</h3>
+        <pre id="result"></pre>
     </div>
 
     <script>
+        // Simple obfuscation logic (you can replace this with your real obfuscation algorithm)
+        function simpleObfuscate(script) {
+            if (typeof script !== 'string' || script.trim() === '') {
+                return 'Error: Invalid input. Please enter a Lua script.';
+            }
+
+            // Example obfuscation logic (reverse the string for demonstration purposes)
+            return script.split('').reverse().join('');
+        }
+
         document.getElementById('obfuscator-form').addEventListener('submit', function(event) {
             event.preventDefault();
-            const luaScript = document.getElementById('luaScript').value;
 
-            // Send the Lua script to the backend for obfuscation
-            fetch('/obfuscate', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ script: luaScript })
-            })
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById('result').innerText = data.obfuscatedScript;
-            })
-            .catch(error => {
-                document.getElementById('result').innerText = 'Error: ' + error.message;
-            });
+            const luaScript = document.getElementById('luaScript').value.trim();
+
+            if (!luaScript) {
+                alert('Please enter a valid Lua script.');
+                return;
+            }
+
+            // Call the obfuscation function
+            const obfuscatedScript = simpleObfuscate(luaScript);
+
+            // Display the obfuscated script
+            document.getElementById('result').innerText = obfuscatedScript;
         });
     </script>
+
 </body>
 </html>
