@@ -30,6 +30,8 @@
 <body>
     <h1>Lua Script Obfuscator</h1>
     <textarea id="luaScript" placeholder="Enter your Lua script here..."></textarea>
+    <input type="text" id="varName" placeholder="Custom Variable Name (optional)">
+    <input type="text" id="watermark" placeholder="Watermark (optional)">
     <button onclick="obfuscateLua()">Obfuscate Script</button>
     <button onclick="copyToClipboard()">Copy Obfuscated Script</button>
     <button onclick="downloadFile()">Download Obfuscated Script</button>
@@ -37,102 +39,61 @@
     <textarea id="obfuscatedScript" readonly></textarea>
 
     <script>
-        function encodeBase64(data) {
-            return btoa(String.fromCharCode.apply(null, data));
+        function randomString(length) {
+            const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let result = '';
+            for (let i = 0; i < length; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return result;
+        }
+
+        function stringToBinary(string) {
+            return string.split('').map(char => {
+                return ('0000000' + char.charCodeAt(0).toString(2)).slice(-8);
+            }).join(' ');
         }
 
         function obfuscateLua() {
-            let script = document.getElementById('luaScript').value;
+            let source = document.getElementById('luaScript').value || 'print("Hello World!")';
+            let customVarName = document.getElementById('varName').value || 'Obfuscated_';
+            let watermark = document.getElementById('watermark').value || 'Watermark';
 
-            // Step 1: LZW Compress the Lua script
-            let compressedScript = lzwCompress(script);
+            let wmComment = `--[[ ${watermark} | Secure by MyObfuscator ]]`;
 
-            // Step 2: Create a custom encoding for the obfuscated script
-            let encodedScript = encodeBase64(compressedScript);
+            let obfuscated = wmComment + '\n';
 
-            // Step 3: Generate a randomized obfuscated Lua script
-            let randomKey = Math.random().toString(36).substring(2, 15); // Generate a random string key
-            let finalObfuscatedScript = `
-return (function(Ax, Ck, T1, T2, X4, C5, Xy)
-    local a = Ax
-    function dec(b)
-        b = string.gsub(b, '[^' .. a .. '=]', '')
-        return b:gsub('.', function(c)
-            if c == '=' then return '' end
-            local d, e = '', a:find(c) - 1
-            for f = 6, 1, -1 do
-                d = d .. (e % 2^f - e % 2^(f - 1) > 0 and '1' or '0')
-            end
-            return d
-        end):gsub('%d%d%d?%d?%d?%d?%d?%d?', function(c)
-            if #c ~= 8 then return '' end
-            local g = 0
-            for f = 1, 8 do
-                g = g + (c:sub(f, f) == '1' and 2^(8 - f) or 0)
-            end
-            return string.char(g)
-        end)
-    end
+            let binaryString = stringToBinary(source);
+            let binaryVarName = customVarName + randomString(5);
 
-    function fromstring(h)
-        local i = {}
-        for j in string.gmatch(h, "%d+") do
-            table.insert(i, tonumber(j))
-        end
-        return i
-    end
+            // Create fake random variable names
+            for (let i = 0; i < 5; i++) {
+                obfuscated += `local ${customVarName}${randomString(8)} = "${binaryString}"\n`;
+            }
 
-    function lzw_decompress(k)
-        local l = 256
-        local m = {}
-        for f = 0, 255 do
-            m[f] = string.char(f)
-        end
-        local n = m[k[1]]
-        local i = n
-        for f = 2, #k do
-            local o
-            local p = k[f]
-            if m[p] then
-                o = m[p]
-            elseif p == l then
-                o = n .. n:sub(1, 1)
-            end
-            i = i .. o
-            m[l] = n .. o:sub(1, 1)
-            l = l + 1
-            n = o
-        end
-        return i
-    end
+            obfuscated += `local ${binaryVarName} = loadstring(table.concat({\\n`;
 
-    local p4 = fromstring(dec('` + encodedScript + `'))
-    return lzw_decompress(p4)
-end)('${randomKey}')
-`;
-
-            document.getElementById('obfuscatedScript').value = finalObfuscatedScript;
-        }
-
-        function lzwCompress(input) {
-            let dictionary = {};
-            let data = input.split('');
-            let out = [];
-            let phrase = data[0];
-            let code = 256;
-            for (let i = 1; i < data.length; i++) {
-                const currChar = data[i];
-                if (dictionary[phrase + currChar]) {
-                    phrase += currChar;
-                } else {
-                    out.push(phrase.length > 1 ? dictionary[phrase] : phrase.charCodeAt(0));
-                    dictionary[phrase + currChar] = code;
-                    code++;
-                    phrase = currChar;
+            // Adding the loadstring payload
+            for (let i = 0; i < binaryString.length; i += 8) {
+                obfuscated += `"\\"..string.char(${parseInt(binaryString.substr(i, 8), 2)}).."\\"`;
+                if (i + 8 < binaryString.length) {
+                    obfuscated += ', ';
                 }
             }
-            out.push(phrase.length > 1 ? dictionary[phrase] : phrase.charCodeAt(0));
-            return out;
+
+            obfuscated += `}))()\n`;
+
+            obfuscated += `if type(${binaryVarName}) == "function" then\n`;
+            obfuscated += `    ${binaryVarName}()\n`;
+            obfuscated += `end\n`;
+
+            // Create a large number of dummy operations
+            for (let i = 0; i < 10; i++) {
+                obfuscated += `local ${customVarName}${randomString(5)} = math.random(1, 100)\n`;
+            }
+
+            // Output the obfuscated script
+            document.getElementById('obfuscatedScript').value = obfuscated;
         }
 
         function copyToClipboard() {
