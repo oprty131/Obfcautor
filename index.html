@@ -3,167 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dumper Options</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            padding: 20px;
-        }
-        #output {
-            border: 1px solid #ccc;
-            padding: 10px;
-            margin-bottom: 20px;
-            height: 200px;
-            overflow-y: scroll;
-            white-space: pre-wrap;
-        }
-        textarea {
-            width: 100%;
-            height: 100px;
-            margin-bottom: 10px;
-        }
-        button {
-            margin-right: 10px;
-        }
-    </style>
+    <title>Moonsec Dumper</title>
 </head>
 <body>
-    <h1>Dumper Options</h1>
-    <label>
-        <input type="radio" name="dumper" value="moonsec" checked> Moonsec Dumper
-    </label>
-    <label>
-        <input type="radio" name="dumper" value="luaobfcautor"> LuaOBCFAutor Dumper
-    </label>
+    <h1>Moonsec / LuaObfuscator Dumper</h1>
 
-    <h2>Enter Your Script</h2>
-    <textarea id="scriptInput" placeholder="Enter your Moonsec or LuaOBCFAutor script here..."></textarea>
+    <textarea id="inputScript" rows="10" cols="50" placeholder="Paste your script here..."></textarea><br>
+    <button onclick="dumpScript()">Dump Script</button>
 
-    <div id="output"></div>
-    <button id="dumpButton">Dump</button>
-    <button id="copyButton">Copy Output</button>
-    <button id="downloadButton">Download Output</button>
-    <button id="clearButton">Clear Output</button>
+    <h2>Output:</h2>
+    <pre id="output"></pre>
 
     <script>
-        const outputDiv = document.getElementById('output');
-        const scriptInput = document.getElementById('scriptInput');
-
-        // Function to handle Moonsec Dumper
-        function moonsecDumper(userScript) {
-            const functionCode = `
-local function appendfile(filename, content)
-    if not isfile(filename) then 
-        writefile(filename, content .. "\\n")
-    end 
-
-    return old_append(filename, content)
-end 
-
-local function format(tab)
-    local result = "{"
-    for index, value in pairs(tab) do
-        if type(value) == "table" then
-            result = result .. format(value)
-        else
-            result = result .. string.format("\\n'Index: %s' | 'Value: %s', ", tostring(index), tostring(value))
-        end
-    end
-    result = result:sub(1, -3) .. "\\n},\\n" 
-    return result
-end
-
-local function foreach(tab)
-    if type(tab) == "table" then 
-        for index, value in pairs(tab) do 
-            if type(value) == "table" then
-                appendfile("output.txt", format(value) .. "\\n")
-            else
-                appendfile("output.txt", string.format("{Index: %s | Value: %s\\n", tostring(index), tostring(value)))
-            end
-        end
-    end 
-end 
-
--- Redirect the unpack function to capture outputs
-function unpack(...)
-    if type(old(...)) == "table" then 
-        foreach(old(...))
-    end 
-    return old(...)
-end 
-`;
-
-            // Combine the function code with the user script and execute
-            const combinedCode = functionCode + "\n" + userScript;
-            try {
-                // Using loadstring in a Lua context (e.g., Roblox)
-                load(combinedCode)(); // Execute the combined code
-                return "Script executed successfully.";
-            } catch (error) {
-                return "Error executing script: " + error.message; // Handle errors
+        // Function to format the script (similar to Lua table formatting)
+        function formatObject(obj) {
+            let result = "{";
+            for (let key in obj) {
+                if (typeof obj[key] === "object") {
+                    result += formatObject(obj[key]);
+                } else {
+                    result += `\n'Index: ${key}' | 'Value: ${obj[key]}', `;
+                }
             }
+            result = result.slice(0, -2) + "\n},\n"; // Remove last comma and add closing brace
+            return result;
         }
 
-        // Function to handle LuaOBCFAutor Dumper
-        function luaobfcautorDumper(userScript) {
-            const functionCode = `
-local old = table 
-table = {}
+        // Main function to dump the script
+        function dumpScript() {
+            const script = document.getElementById('inputScript').value;
+            let parsedScript;
 
-table.concat = function(...)
-     print(old.concat(...))
-     return old.concat(...)
-end
-
-table.insert = old.insert
-`;
-
-            // Combine the function code with the user script and execute
-            const combinedCode = functionCode + "\n" + userScript;
             try {
-                load(combinedCode)(); // Execute the combined code
-                return "Script executed successfully.";
-            } catch (error) {
-                return "Error executing script: " + error.message; // Handle errors
+                // Attempt to parse the script (assuming it's JSON-like format for demonstration)
+                parsedScript = JSON.parse(script);
+            } catch (e) {
+                document.getElementById('output').innerText = "Invalid script format. Make sure it's JSON.";
+                return;
             }
+
+            // Process the script and dump it
+            const output = formatObject(parsedScript);
+            document.getElementById('output').innerText = output;
         }
-
-        // Dump button functionality
-        document.getElementById('dumpButton').onclick = () => {
-            const selectedDumper = document.querySelector('input[name="dumper"]:checked').value;
-            const userScript = scriptInput.value; // Get user script input
-            outputDiv.textContent = ''; // Clear previous output
-            
-            let outputMessage;
-            if (selectedDumper === 'moonsec') {
-                outputMessage = moonsecDumper(userScript); // Execute Moonsec Dumper
-            } else {
-                outputMessage = luaobfcautorDumper(userScript); // Execute LuaOBCFAutor Dumper
-            }
-            outputDiv.textContent = outputMessage; // Display the execution message
-        };
-
-        // Copy output to clipboard
-        document.getElementById('copyButton').onclick = () => {
-            navigator.clipboard.writeText(outputDiv.textContent)
-                .then(() => alert('Output copied to clipboard!'))
-                .catch(err => console.error('Could not copy text: ', err));
-        };
-
-        // Download output as text file
-        document.getElementById('downloadButton').onclick = () => {
-            const blob = new Blob([outputDiv.textContent], { type: 'text/plain' });
-            const link = document.createElement('a');
-            link.href = window.URL.createObjectURL(blob);
-            link.download = 'output.txt';
-            link.click();
-        };
-
-        // Clear output
-        document.getElementById('clearButton').onclick = () => {
-            outputDiv.textContent = '';
-        };
     </script>
 </body>
 </html>
