@@ -34,17 +34,92 @@
     <textarea id="obfuscatedScript" readonly></textarea>
 
     <script>
-        // LZW Compression function (from the provided file)
-        function lzw_compress(input) {
+        function encodeBase64(data) {
+            // Base64 encode a binary string
+            return btoa(String.fromCharCode.apply(null, data));
+        }
+
+        function obfuscateLua() {
+            let script = document.getElementById('luaScript').value;
+
+            // Step 1: LZW Compress the Lua script
+            let compressedScript = lzwCompress(script);
+
+            // Step 2: Create a custom encoding for the obfuscated script
+            let encodedScript = encodeBase64(compressedScript);
+
+            // Step 3: Format the final obfuscated Lua script
+            let finalObfuscatedScript = `
+return (function(Ax, Ck, T1, T2, X4, C5, Xy)
+    local a = Ax
+    function dec(b)
+        b = string.gsub(b, '[^' .. a .. '=]', '')
+        return b:gsub('.', function(c)
+            if c == '=' then return '' end
+            local d, e = '', a:find(c) - 1
+            for f = 6, 1, -1 do
+                d = d .. (e % 2^f - e % 2^(f - 1) > 0 and '1' or '0')
+            end
+            return d
+        end):gsub('%d%d%d?%d?%d?%d?%d?%d?', function(c)
+            if #c ~= 8 then return '' end
+            local g = 0
+            for f = 1, 8 do
+                g = g + (c:sub(f, f) == '1' and 2^(8 - f) or 0)
+            end
+            return string.char(g)
+        end)
+    end
+
+    function fromstring(h)
+        local i = {}
+        for j in string.gmatch(h, "%d+") do
+            table.insert(i, tonumber(j))
+        end
+        return i
+    end
+
+    function lzw_decompress(k)
+        local l = 256
+        local m = {}
+        for f = 0, 255 do
+            m[f] = string.char(f)
+        end
+        local n = m[k[1]]
+        local i = n
+        for f = 2, #k do
+            local o
+            local p = k[f]
+            if m[p] then
+                o = m[p]
+            elseif p == l then
+                o = n .. n:sub(1, 1)
+            end
+            i = i .. o
+            m[l] = n .. o:sub(1, 1)
+            l = l + 1
+            n = o
+        end
+        return i
+    end
+
+    local p4 = fromstring(dec('` + encodedScript + `'))
+    return lzw_decompress(p4)
+end)('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/')
+`;
+
+            document.getElementById('obfuscatedScript').value = finalObfuscatedScript;
+        }
+
+        function lzwCompress(input) {
             let dictionary = {};
-            let data = (input + "").split("");
+            let data = input.split('');
             let out = [];
-            let currChar;
             let phrase = data[0];
             let code = 256;
             for (let i = 1; i < data.length; i++) {
-                currChar = data[i];
-                if (dictionary[phrase + currChar] != null) {
+                const currChar = data[i];
+                if (dictionary[phrase + currChar]) {
                     phrase += currChar;
                 } else {
                     out.push(phrase.length > 1 ? dictionary[phrase] : phrase.charCodeAt(0));
@@ -55,68 +130,6 @@
             }
             out.push(phrase.length > 1 ? dictionary[phrase] : phrase.charCodeAt(0));
             return out;
-        }
-
-        // Base64 encoding (same as in your obfuscated script)
-        function base64_encode(data) {
-            return btoa(String.fromCharCode.apply(null, new Uint8Array(data)));
-        }
-
-        function obfuscateLua() {
-            let script = document.getElementById('luaScript').value;
-
-            // Step 1: Compress the Lua script using LZW compression
-            let compressedScript = lzw_compress(script);
-
-            // Step 2: Base64 encode the compressed script
-            let obfuscated = base64_encode(compressedScript);
-
-            // Step 3: Generate the obfuscated Lua script
-            let luaObfuscatedScript = `
-return(function(Ax,Ck,T1,T2,X4,C5,Xy)
-local a=Ax
-function dec(b)
-  b=string.gsub(b,'[^'..a..'=]','')
-  return b:gsub('.',function(c)
-    if c=='='then return''end
-    local d,e='',a:find(c)-1
-    for f=6,1,-1 do d=d..(e%2^f-e%2^(f-1)>0 and'1'or'0')end
-    return d
-  end):gsub('%d%d%d?%d?%d?%d?%d?',function(c)
-    if #c~=8 then return''end
-    local g=0
-    for f=1,8 do g=g+(c:sub(f,f)=='1'and 2^(8-f)or 0)end
-    return string.char(g)
-  end)
-end
-function fromstring(h)
-  local i={}
-  for j in string.gmatch(h,"%d+")do table.insert(i,tonumber(j))end
-  return i
-end
-function lzw_decompress(k)
-  local l=256
-  local m={}
-  for f=0,255 do m[f]=string.char(f)end
-  local n=m[k[1]]
-  local i=n
-  for f=2,#k do
-    local o
-    local p=k[f]
-    if m[p]then o=m[p]elseif p==l then o=n..n:sub(1,1)end
-    i=i..o
-    m[l]=n..o:sub(1,1)
-    l=l+1
-    n=o
-  end
-  return i
-end
-local p4 = fromstring(dec('` + obfuscated + `'))
-return lzw_decompress(p4)
-end)('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/')
-`;
-
-            document.getElementById('obfuscatedScript').value = luaObfuscatedScript;
         }
     </script>
 </body>
