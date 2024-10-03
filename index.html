@@ -50,39 +50,14 @@
         const scriptInput = document.getElementById('scriptInput');
 
         // Function to handle Moonsec Dumper
-        function moonsecDumper(script) {
-            const Credits = "\n" + `
-
-          _____                   _______                   _____           _______                   _____                    _____                    _____          
-         /\\    \\                 /::\\    \\                 /\\    \\         /::\\    \\                 /\\    \\                  /\\    \\                  /\\    \\         
-        /::\\    \\               /::::\\    \\               /::\\____\\       /::::\\    \\               /::\\    \\                /::\\    \\                /:::\\____\\        
-       /::::\\    \\             /::::::\\    \\             /:::/    /      /::::::\\    \\             /::::\\    \\              /::::\\    \\              /:::/    /        
-      /::::::\\    \\           /::::::::\\    \\           /:::/    /      /::::::::\\    \\           /::::::\\    \\            /::::::\\    \\            /:::/    /         
-     /:::/\\:::\\    \\         /:::/~~\\:::\\    \\         /:::/    /      /:::/~~\\:::\\    \\         /:::/\\:::\\    \\          /:::/\\:::\\    \\          /:::/    /          
-    /:::/__\\:::\\    \\       /:::/    \\:::\\    \\       /:::/    /      /:::/    \\:::\\    \\       /:::/  \\:::\\    \\        /:::/__\\:::\\    \\        /:::/____/           
-    \\:::\\   \\:::\\    \\     /:::/    / \\:::\\    \\     /:::/    /      /:::/    / \\:::\\    \\     /:::/    \\:::\\    \\      /::::\\   \\:::\\    \\       |::|    |            
-  ___\\:::\\   \\:::\\    \\   /:::/____/   \\:::\\____\\   /:::/    /      /:::/____/   \\:::\\____\\   /:::/    / \\:::\\    \\    /:::/\\:::\\   \\:::\\    \\     |::|    |    _____  
- /\\   \\:::\\   \\:::\\    \\ |:::|    |     |:::|    | /:::/    /      |:::|    |     |:::|    | /:::/    /   \\:::\\ ___\\  /:::/\\:::\\   \\:::\\    \\     |::|    |   /\\    \\ 
-/::\\   \\:::\\   \\:::\\____\\|:::|____|     |:::|    |/:::/____/       |:::|____|     |:::|    |/:::/____/     \\:::|    |/:::/__\\:::\\   \\:::\\____\\    |::|    |  /::\\____\\
-\\:::\\   \\:::\\   \\::/    / \\:::\\    \\   /:::/    / \\:::\\    \\        \\:::\\    \\   /:::/    / \\:::\\    \\     /:::|____|\\:::\\   \\:::\\   \\::/    /    |::|    | /:::/    /
- \\:::\\   \\:::\\   \\::/____/   \\:::\\    \\ /:::/    /   \\:::\\    \\        \\:::\\    \\ /:::/    /   \\:::\\    /:::/    /    \\:::\\   \\:::\\____\\        |::|____|/:::/    /  
-  \\:::\\  /:::/    /         \\::::::::/    /         \\:::\\    \\        \\::::::::/    /         \\:::\\  /:::/    /        \\:::\\   \\:::\\____\\        |:::::::::::/    /   
-   \\:::\/:::/    /           \\::::::/    /           \\:::\\    \\        \\::::::/    /           \\::::::/    /          \\:::\\    \\                                  
-    \\::::::/    /             \\::::/    /             \\:::\\    \\        \\::/____/             \\::::/    /            \\:::\\____\\                                 
-     \\::::/    /               \\::/____/               \\::/    /                                   ~~                       \\::/    /                                 
-      \\::/    /                 ~~                      \\::/    /                                   ~~                       \\____/                                  
-       \\____/                                           \\____/                                   ~~                       \\____/                                  
-                                                                                                                                           
-                                                                    Moonsec V3 Dumper
-`;
-
+        function moonsecDumper(userScript) {
             const functionCode = `
-local function appendfile(filename,content)
+local function appendfile(filename, content)
     if not isfile(filename) then 
-        writefile(filename,string.format("%s\\n %s",Credits,content))
+        writefile(filename, content .. "\\n")
     end 
 
-    return old_append(filename,content)
+    return old_append(filename, content)
 end 
 
 local function format(tab)
@@ -102,14 +77,15 @@ local function foreach(tab)
     if type(tab) == "table" then 
         for index, value in pairs(tab) do 
             if type(value) == "table" then
-                appendfile(output, format(value) .. "\\n")
+                appendfile("output.txt", format(value) .. "\\n")
             else
-                appendfile(output, string.format("{Index: %s | Value: %s\\n", tostring(index), tostring(value)))
+                appendfile("output.txt", string.format("{Index: %s | Value: %s\\n", tostring(index), tostring(value)))
             end
         end
     end 
 end 
 
+-- Redirect the unpack function to capture outputs
 function unpack(...)
     if type(old(...)) == "table" then 
         foreach(old(...))
@@ -118,12 +94,19 @@ function unpack(...)
 end 
 `;
 
-            // Append user script to the function code
-            return functionCode + "\n" + script;
+            // Combine the function code with the user script and execute
+            const combinedCode = functionCode + "\n" + userScript;
+            try {
+                // Using loadstring in a Lua context (e.g., Roblox)
+                load(combinedCode)(); // Execute the combined code
+                return "Script executed successfully.";
+            } catch (error) {
+                return "Error executing script: " + error.message; // Handle errors
+            }
         }
 
         // Function to handle LuaOBCFAutor Dumper
-        function luaobfcautorDumper(script) {
+        function luaobfcautorDumper(userScript) {
             const functionCode = `
 local old = table 
 table = {}
@@ -136,8 +119,14 @@ end
 table.insert = old.insert
 `;
 
-            // Append user script to the function code
-            return functionCode + "\n" + script;
+            // Combine the function code with the user script and execute
+            const combinedCode = functionCode + "\n" + userScript;
+            try {
+                load(combinedCode)(); // Execute the combined code
+                return "Script executed successfully.";
+            } catch (error) {
+                return "Error executing script: " + error.message; // Handle errors
+            }
         }
 
         // Dump button functionality
@@ -146,11 +135,13 @@ table.insert = old.insert
             const userScript = scriptInput.value; // Get user script input
             outputDiv.textContent = ''; // Clear previous output
             
+            let outputMessage;
             if (selectedDumper === 'moonsec') {
-                outputDiv.textContent = moonsecDumper(userScript); // Execute Moonsec Dumper
+                outputMessage = moonsecDumper(userScript); // Execute Moonsec Dumper
             } else {
-                outputDiv.textContent = luaobfcautorDumper(userScript); // Execute LuaOBCFAutor Dumper
+                outputMessage = luaobfcautorDumper(userScript); // Execute LuaOBCFAutor Dumper
             }
+            outputDiv.textContent = outputMessage; // Display the execution message
         };
 
         // Copy output to clipboard
