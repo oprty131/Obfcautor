@@ -59,11 +59,6 @@
     </div>
 
     <script>
-        // Encrypt strings by converting to char codes and obfuscating them
-        function encryptString(str) {
-            return "table.concat({ " + str.split('').map(char => char.charCodeAt(0)).join(", ") + " }, '')";
-        }
-
         // Generate random variable names
         function generateRandomString(length) {
             let result = '';
@@ -75,26 +70,48 @@
             return result;
         }
 
-        // Obfuscate Lua script
+        // String obfuscation by converting characters to bytecodes
+        function obfuscateString(str) {
+            return '"' + str.split('').map(char => "\\" + char.charCodeAt(0).toString(8)).join('') + '"';
+        }
+
+        // Encrypt strings using a simple function
+        function encryptString(str) {
+            return str.split('').map(char => char.charCodeAt(0) + 3).join(',');
+        }
+
+        // Create a Lua-compatible function to decode strings at runtime
+        function generateDecryptor() {
+            return `function decryptStr(enc) local res = {}; for _, c in ipairs(enc) do table.insert(res, string.char(c - 3)) end return table.concat(res) end`;
+        }
+
+        // Control flow obfuscation using fake loops
+        function addControlFlow(code) {
+            return `if math.random() < 1 then while true do break end end ${code}`;
+        }
+
+        // Obfuscate the entire Lua script
         function obfuscateLua(script) {
             let obfuscatedScript = script;
 
-            // Step 1: Variable renaming (rename all 'local' variables to random strings)
+            // Step 1: Variable renaming
             obfuscatedScript = obfuscatedScript.replace(/local (\w+)/g, function(_, varName) {
-                const newVar = generateRandomString(6);
+                const newVar = generateRandomString(8);
                 return `local ${newVar}`;
             });
 
-            // Step 2: String obfuscation (encrypt strings in the Lua script)
+            // Step 2: String obfuscation (encode strings and decode them at runtime)
             obfuscatedScript = obfuscatedScript.replace(/"(.*?)"/g, function(_, strContent) {
-                return 'loadstring(' + encryptString(strContent) + ')()';
+                const encryptedStr = encryptString(strContent);
+                return `decryptStr({${encryptedStr}})`;
             });
 
-            // Step 3: Add control flow obfuscation with meaningless loops and conditions
-            obfuscatedScript = `while (true) do if math.random() < 0.5 then break end end ` + obfuscatedScript;
+            // Step 3: Add control flow obfuscation
+            obfuscatedScript = addControlFlow(obfuscatedScript);
 
-            // Step 4: Add dynamic execution (wrap code in loadstring for extra obfuscation)
-            obfuscatedScript = `loadstring('${obfuscatedScript.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}')()`;
+            // Step 4: Inject the decryptor function at the start of the script
+            const decryptor = generateDecryptor();
+            obfuscatedScript = decryptor + "\n\n" + obfuscatedScript;
 
             return obfuscatedScript;
         }
