@@ -3,61 +3,123 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lua Obfuscator</title>
+    <title>Roblox Lua Script Obfuscator</title>
     <style>
         body {
             font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background-color: #fff;
             padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            width: 400px;
+            text-align: center;
         }
         textarea {
             width: 100%;
-            height: 200px;
+            height: 150px;
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 15px;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #copyButton {
+            background-color: #4CAF50;
+            color: white;
+        }
+        #downloadButton {
+            background-color: #2196F3;
+            color: white;
         }
     </style>
 </head>
 <body>
+    <div class="container">
+        <h2>Roblox Script Obfuscator</h2>
+        <textarea id="inputScript" placeholder="Paste your Lua script here"></textarea>
+        <textarea id="outputScript" placeholder="Obfuscated script" readonly></textarea>
+        <br>
+        <button id="obfuscateButton">Obfuscate</button>
+        <button id="copyButton">Copy</button>
+        <button id="downloadButton">Download</button>
+    </div>
 
-<h1>Basic Lua Obfuscator</h1>
-<textarea id="input" placeholder="Paste your Lua code here"></textarea>
-<br>
-<button onclick="obfuscate()">Obfuscate</button>
-<h2>Obfuscated Code</h2>
-<textarea id="output"></textarea>
+    <script>
+        // Encrypt strings by converting to char codes and obfuscating them
+        function encryptString(str) {
+            return "table.concat({ " + str.split('').map(char => char.charCodeAt(0)).join(", ") + " }, '')";
+        }
 
-<script>
-    function obfuscate() {
-        let code = document.getElementById("input").value;
-        let obfuscatedCode = basicObfuscate(code);
-        document.getElementById("output").value = obfuscatedCode;
-    }
+        // Generate random variable names
+        function generateRandomString(length) {
+            let result = '';
+            const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+            const charactersLength = characters.length;
+            for (let i = 0; i < length; i++) {
+                result += characters.charAt(Math.floor(Math.random() * charactersLength));
+            }
+            return result;
+        }
 
-    function basicObfuscate(code) {
-        // Example of basic obfuscation techniques
-        // 1. Random variable names
-        code = code.replace(/\b(\w+)\b/g, function(match) {
-            return Math.random().toString(36).substring(2, 7);
+        // Obfuscate Lua script
+        function obfuscateLua(script) {
+            let obfuscatedScript = script;
+
+            // Step 1: Variable renaming (rename all 'local' variables to random strings)
+            obfuscatedScript = obfuscatedScript.replace(/local (\w+)/g, function(_, varName) {
+                const newVar = generateRandomString(6);
+                return `local ${newVar}`;
+            });
+
+            // Step 2: String obfuscation (encrypt strings in the Lua script)
+            obfuscatedScript = obfuscatedScript.replace(/"(.*?)"/g, function(_, strContent) {
+                return 'loadstring(' + encryptString(strContent) + ')()';
+            });
+
+            // Step 3: Add control flow obfuscation with meaningless loops and conditions
+            obfuscatedScript = `while (true) do if math.random() < 0.5 then break end end ` + obfuscatedScript;
+
+            // Step 4: Add dynamic execution (wrap code in loadstring for extra obfuscation)
+            obfuscatedScript = `loadstring('${obfuscatedScript.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}')()`;
+
+            return obfuscatedScript;
+        }
+
+        document.getElementById('obfuscateButton').addEventListener('click', function () {
+            const inputScript = document.getElementById('inputScript').value;
+            const obfuscatedScript = obfuscateLua(inputScript);
+            document.getElementById('outputScript').value = obfuscatedScript;
         });
 
-        // 2. Random number replacement
-        code = code.replace(/\b(\d+)\b/g, function() {
-            return Math.floor(Math.random() * 1000);
+        document.getElementById('copyButton').addEventListener('click', function () {
+            const outputScript = document.getElementById('outputScript');
+            outputScript.select();
+            document.execCommand('copy');
+            alert('Copied to clipboard');
         });
 
-        // 3. Replace strings with encoded strings
-        code = code.replace(/(".*?")/g, function(match) {
-            return 'decodeString("' + btoa(match) + '")';
+        document.getElementById('downloadButton').addEventListener('click', function () {
+            const obfuscatedScript = document.getElementById('outputScript').value;
+            const blob = new Blob([obfuscatedScript], { type: 'text/plain' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'obfuscated.lua';
+            link.click();
         });
-
-        // Wrap the code in an anonymous function
-        code = `return(function() ${code} end)()`;
-
-        return code;
-    }
-
-    function decodeString(encoded) {
-        return atob(encoded);
-    }
-</script>
-
+    </script>
 </body>
 </html>
