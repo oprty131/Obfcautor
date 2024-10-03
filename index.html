@@ -3,67 +3,120 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Moonsec Dumper from GitHub Raw</title>
+    <title>Lua Script Obfuscator</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        textarea { width: 100%; }
-        pre { background: #f4f4f4; padding: 10px; border: 1px solid #ccc; }
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        textarea {
+            width: 100%;
+            height: 150px;
+            margin: 10px 0;
+        }
+        button {
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
     </style>
 </head>
 <body>
-    <h1>Moonsec Dumper from GitHub Raw Link</h1>
-
-    <input id="githubLink" type="text" placeholder="Enter GitHub Raw Link" style="width: 100%;"><br>
-    <button onclick="fetchAndDump()">Fetch and Dump</button>
-
-    <h2>Output:</h2>
-    <pre id="output"></pre>
+    <h1>Lua Script Obfuscator</h1>
+    <textarea id="luaScript" placeholder="Enter your Lua script here..."></textarea>
+    <button onclick="obfuscateLua()">Obfuscate Script</button>
+    <h3>Obfuscated Script:</h3>
+    <textarea id="obfuscatedScript" readonly></textarea>
 
     <script>
-        // Function to format the output from a script
-        function formatObject(obj) {
-            let result = "{\n";
-            for (let key in obj) {
-                if (obj.hasOwnProperty(key)) {
-                    const value = obj[key];
-                    if (typeof value === 'object') {
-                        result += `  '${key}': ${formatObject(value)},\n`;
-                    } else {
-                        result += `  '${key}': '${value}',\n`;
-                    }
+        // LZW Compression function (from the provided file)
+        function lzw_compress(input) {
+            let dictionary = {};
+            let data = (input + "").split("");
+            let out = [];
+            let currChar;
+            let phrase = data[0];
+            let code = 256;
+            for (let i = 1; i < data.length; i++) {
+                currChar = data[i];
+                if (dictionary[phrase + currChar] != null) {
+                    phrase += currChar;
+                } else {
+                    out.push(phrase.length > 1 ? dictionary[phrase] : phrase.charCodeAt(0));
+                    dictionary[phrase + currChar] = code;
+                    code++;
+                    phrase = currChar;
                 }
             }
-            result = result.slice(0, -2) + "\n}"; // Remove last comma
-            return result;
+            out.push(phrase.length > 1 ? dictionary[phrase] : phrase.charCodeAt(0));
+            return out;
         }
 
-        // Function to fetch the script from the GitHub link
-        async function fetchAndDump() {
-            const link = document.getElementById('githubLink').value;
-            const outputElement = document.getElementById('output');
-            let output;
+        // Base64 encoding (same as in your obfuscated script)
+        function base64_encode(data) {
+            return btoa(String.fromCharCode.apply(null, new Uint8Array(data)));
+        }
 
-            try {
-                const response = await fetch(link);
-                if (!response.ok) throw new Error("Network response was not ok");
+        function obfuscateLua() {
+            let script = document.getElementById('luaScript').value;
 
-                const scriptInput = await response.text();
+            // Step 1: Compress the Lua script using LZW compression
+            let compressedScript = lzw_compress(script);
 
-                // Here you can process the scriptInput as needed.
-                // For simplicity, let's assume it's JavaScript code
-                // You might want to modify this based on your specific needs.
+            // Step 2: Base64 encode the compressed script
+            let obfuscated = base64_encode(compressedScript);
 
-                // For demonstration purposes, let's parse it as JSON
-                const parsedScript = eval(`(${scriptInput})`); // Replace with a safe parser as needed
+            // Step 3: Generate the obfuscated Lua script
+            let luaObfuscatedScript = `
+return(function(Ax,Ck,T1,T2,X4,C5,Xy)
+local a=Ax
+function dec(b)
+  b=string.gsub(b,'[^'..a..'=]','')
+  return b:gsub('.',function(c)
+    if c=='='then return''end
+    local d,e='',a:find(c)-1
+    for f=6,1,-1 do d=d..(e%2^f-e%2^(f-1)>0 and'1'or'0')end
+    return d
+  end):gsub('%d%d%d?%d?%d?%d?%d?',function(c)
+    if #c~=8 then return''end
+    local g=0
+    for f=1,8 do g=g+(c:sub(f,f)=='1'and 2^(8-f)or 0)end
+    return string.char(g)
+  end)
+end
+function fromstring(h)
+  local i={}
+  for j in string.gmatch(h,"%d+")do table.insert(i,tonumber(j))end
+  return i
+end
+function lzw_decompress(k)
+  local l=256
+  local m={}
+  for f=0,255 do m[f]=string.char(f)end
+  local n=m[k[1]]
+  local i=n
+  for f=2,#k do
+    local o
+    local p=k[f]
+    if m[p]then o=m[p]elseif p==l then o=n..n:sub(1,1)end
+    i=i..o
+    m[l]=n..o:sub(1,1)
+    l=l+1
+    n=o
+  end
+  return i
+end
+local p4 = fromstring(dec('` + obfuscated + `'))
+return lzw_decompress(p4)
+end)('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/')
+`;
 
-                // Format the parsed script
-                output = formatObject(parsedScript);
-            } catch (error) {
-                output = "Error fetching or processing script: " + error.message;
-            }
-
-            // Display the output
-            outputElement.textContent = output;
+            document.getElementById('obfuscatedScript').value = luaObfuscatedScript;
         }
     </script>
 </body>
