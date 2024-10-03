@@ -3,48 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Moonsec Dumper</title>
+    <title>Moonsec Dumper from GitHub Raw</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        textarea { width: 100%; }
+        pre { background: #f4f4f4; padding: 10px; border: 1px solid #ccc; }
+    </style>
 </head>
 <body>
-    <h1>Moonsec / LuaObfuscator Dumper</h1>
+    <h1>Moonsec Dumper from GitHub Raw Link</h1>
 
-    <textarea id="inputScript" rows="10" cols="50" placeholder="Paste your script here..."></textarea><br>
-    <button onclick="dumpScript()">Dump Script</button>
+    <input id="githubLink" type="text" placeholder="Enter GitHub Raw Link" style="width: 100%;"><br>
+    <button onclick="fetchAndDump()">Fetch and Dump</button>
 
     <h2>Output:</h2>
     <pre id="output"></pre>
 
     <script>
-        // Function to format the script (similar to Lua table formatting)
+        // Function to format the output from a script
         function formatObject(obj) {
-            let result = "{";
+            let result = "{\n";
             for (let key in obj) {
-                if (typeof obj[key] === "object") {
-                    result += formatObject(obj[key]);
-                } else {
-                    result += `\n'Index: ${key}' | 'Value: ${obj[key]}', `;
+                if (obj.hasOwnProperty(key)) {
+                    const value = obj[key];
+                    if (typeof value === 'object') {
+                        result += `  '${key}': ${formatObject(value)},\n`;
+                    } else {
+                        result += `  '${key}': '${value}',\n`;
+                    }
                 }
             }
-            result = result.slice(0, -2) + "\n},\n"; // Remove last comma and add closing brace
+            result = result.slice(0, -2) + "\n}"; // Remove last comma
             return result;
         }
 
-        // Main function to dump the script
-        function dumpScript() {
-            const script = document.getElementById('inputScript').value;
-            let parsedScript;
+        // Function to fetch the script from the GitHub link
+        async function fetchAndDump() {
+            const link = document.getElementById('githubLink').value;
+            const outputElement = document.getElementById('output');
+            let output;
 
             try {
-                // Attempt to parse the script (assuming it's JSON-like format for demonstration)
-                parsedScript = JSON.parse(script);
-            } catch (e) {
-                document.getElementById('output').innerText = "Invalid script format. Make sure it's JSON.";
-                return;
+                const response = await fetch(link);
+                if (!response.ok) throw new Error("Network response was not ok");
+
+                const scriptInput = await response.text();
+
+                // Here you can process the scriptInput as needed.
+                // For simplicity, let's assume it's JavaScript code
+                // You might want to modify this based on your specific needs.
+
+                // For demonstration purposes, let's parse it as JSON
+                const parsedScript = eval(`(${scriptInput})`); // Replace with a safe parser as needed
+
+                // Format the parsed script
+                output = formatObject(parsedScript);
+            } catch (error) {
+                output = "Error fetching or processing script: " + error.message;
             }
 
-            // Process the script and dump it
-            const output = formatObject(parsedScript);
-            document.getElementById('output').innerText = output;
+            // Display the output
+            outputElement.textContent = output;
         }
     </script>
 </body>
