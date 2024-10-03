@@ -31,6 +31,7 @@
         <input type="radio" name="dumper" value="luaobfcautor"> LuaOBCFAutor Dumper
     </label>
     <div id="output"></div>
+    <button id="dumpButton">Dump</button>
     <button id="copyButton">Copy Output</button>
     <button id="downloadButton">Download Output</button>
     <button id="clearButton">Clear Output</button>
@@ -55,15 +56,14 @@
  /\\   \\:::\\   \\:::\\    \\ |:::|    |     |:::|    | /:::/    /      |:::|    |     |:::|    | /:::/    /   \\:::\\ ___\\  /:::/\\:::\\   \\:::\\    \\     |::|    |    /\\    \\ 
 /::\\   \\:::\\   \\:::\\____\\|:::|____|     |:::|    |/:::/____/       |:::|____|     |:::|    |/:::/____/     \\:::|    |/:::/__\\:::\\   \\:::\\____\\    |::|    |   /::\\____\\
 \\:::\\   \\:::\\   \\::/    / \\:::\\    \\   /:::/    / \\:::\\    \\        \\:::\\    \\   /:::/    / \\:::\\    \\     /:::|____|\\:::\\   \\:::\\   \\::/    /    |::|    |  /:::/    /
- \\:::\\   \\:::\\   \\/____/   \\:::\\    \\ /:::/    /   \\:::\\    \\        \\:::\\    \\ /:::/    /   \\:::\\    \\ /:::/    /  \\:::\\   \\:::\\   \\/____/     |::|    | /:::/    / 
-  \\:::\\   \\:::\\    \\        \\:::\\    /:::/    /     \\:::\\    \\        \\:::\\__/:::/    /     \\:::\\    /:::/    /    \\:::\\   \\:::\\    \\         |::|____|/:::/    /  
-   \\:::\\   \\:::\\____\\        \\:::\\__/:::/    /       \\:::\\    \\        \\::::::::/    /       \\:::\\  /:::/    /      \\:::\\   \\:::\\____\\        |:::::::::::/    /   
-    \\:::\\  /:::/    /         \\::::::::/    /         \\:::\\    \\        \\::::::/    /         \\:::\\/:::/    /        \\:::\\   \\/____/          ~~~~~~~~~~          
-     \\:::\/:::/    /           \\::::::/    /           \\:::\\    \\        \\::::/    /           \\::::::/    /          \\:::\\    \\                                  
-      \\::::::/    /             \\::::/    /             \\:::\\    \\        \\::/____/             \\::::/    /            \\:::\\____\\                                 
-       \\::::/    /               \\::/____/               \\::/    /         ~~                      \\::/    /              \\::/    /                                 
-        \\::/    /                 ~~                      \\::/    /                                   ~~                       \\::/    /                                 
-         \\/____/                                           \\/____/                                   ~~                       \\/____/                                  
+ \\:::\\   \\:::\\   \\::/____/   \\:::\\    \\ /:::/    /   \\:::\\    \\        \\:::\\    \\ /:::/    /   \\:::\\    /:::/    /    \\:::\\   \\:::\\   \\/____/     |::|    | /:::/    / 
+  \\:::\\   \\:::\\____\\        \\:::\\    /:::/    /     \\:::\\    \\        \\:::\\__/:::/    /     \\:::\\  /:::/    /      \\:::\\   \\:::\\____\\        |::|____|/:::/    /  
+   \\:::\\  /:::/    /         \\::::::::/    /         \\:::\\    \\        \\::::::::/    /       \\:::\\  /:::/    /        \\:::\\   \\:::\\____\\        |:::::::::::/    /   
+    \\:::\/:::/    /           \\::::::/    /           \\:::\\    \\        \\::::::/    /         \\::::::/    /          \\:::\\    \\                                  
+     \\::::::/    /             \\::::/    /             \\:::\\    \\        \\::/____/             \\::::/    /            \\:::\\____\\                                 
+      \\::::/    /               \\::/____/               \\::/    /         ~~                      \\::/    /              \\::/    /                                 
+       \\::/    /                 ~~                      \\::/    /                                   ~~                       \\::/    /                                 
+        \\____/                                           \\____/                                   ~~                       \\____/                                  
                                                                                                                                            
                                                                     Moonsec V3 Dumper made by Solodev
 `;
@@ -134,16 +134,19 @@ table.insert = old.insert
         document.querySelectorAll('input[name="dumper"]').forEach((elem) => {
             elem.addEventListener('change', function() {
                 outputDiv.textContent = ''; // Clear output on change
-                if (this.value === 'moonsec') {
-                    moonsecDumper(); // Activate Moonsec Dumper
-                } else {
-                    luaobfcautorDumper(); // Activate LuaOBCFAutor Dumper
-                }
             });
         });
 
-        // Initialize with the default dumper
-        moonsecDumper();
+        // Dump button functionality
+        document.getElementById('dumpButton').onclick = () => {
+            const selectedDumper = document.querySelector('input[name="dumper"]:checked').value;
+            outputDiv.textContent = ''; // Clear previous output
+            if (selectedDumper === 'moonsec') {
+                moonsecDumper(); // Execute Moonsec Dumper
+            } else {
+                luaobfcautorDumper(); // Execute LuaOBCFAutor Dumper
+            }
+        };
 
         // Copy output to clipboard
         document.getElementById('copyButton').onclick = () => {
@@ -152,7 +155,7 @@ table.insert = old.insert
                 .catch(err => console.error('Could not copy text: ', err));
         };
 
-        // Download output as a text file
+        // Download output as text file
         document.getElementById('downloadButton').onclick = () => {
             const blob = new Blob([outputDiv.textContent], { type: 'text/plain' });
             const link = document.createElement('a');
