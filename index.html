@@ -59,7 +59,7 @@
     </div>
 
     <script>
-        // Generate a random string for variable/function names
+        // Generate a random variable/function name
         function generateRandomString(length) {
             let result = '';
             const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
@@ -69,7 +69,7 @@
             return result;
         }
 
-        // Encrypt strings into bytecode representation
+        // Encrypt strings to bytecode format
         function encryptString(str) {
             const byteArray = [];
             for (let char of str) {
@@ -88,17 +88,6 @@
             });
         }
 
-        // Function to create a complex obfuscation structure
-        function createObfuscatedStructure(script) {
-            let obfuscatedCode = `return (function(${Array.from({ length: 20 }, (_, i) => `arg${i}`).join(', ')})\n`;
-            obfuscatedCode += `local function decrypt(str)\n`;
-            obfuscatedCode += `return load(str)\n`;
-            obfuscatedCode += `end\n`;
-            obfuscatedCode += `return decrypt(${encryptString(script)})\n`;
-            obfuscatedCode += `end)()`;
-            return obfuscatedCode;
-        }
-
         // Add dummy functions to inflate size
         function addDummyFunctions(script) {
             let dummyFunctions = '';
@@ -106,6 +95,11 @@
                 dummyFunctions += `function ${generateRandomString(8)}() end\n`; // Generate dummy function
             }
             return dummyFunctions + script;
+        }
+
+        // Create the obfuscated script structure
+        function createObfuscatedStructure(script) {
+            return `return (function() \n${script}\n end)()`;
         }
 
         // Obfuscate the entire Lua script
