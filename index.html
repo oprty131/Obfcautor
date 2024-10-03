@@ -17,6 +17,11 @@
             overflow-y: scroll;
             white-space: pre-wrap;
         }
+        textarea {
+            width: 100%;
+            height: 100px;
+            margin-bottom: 10px;
+        }
         button {
             margin-right: 10px;
         }
@@ -30,6 +35,10 @@
     <label>
         <input type="radio" name="dumper" value="luaobfcautor"> LuaOBCFAutor Dumper
     </label>
+
+    <h2>Enter Your Script</h2>
+    <textarea id="scriptInput" placeholder="Enter your Moonsec or LuaOBCFAutor script here..."></textarea>
+
     <div id="output"></div>
     <button id="dumpButton">Dump</button>
     <button id="copyButton">Copy Output</button>
@@ -38,10 +47,10 @@
 
     <script>
         const outputDiv = document.getElementById('output');
+        const scriptInput = document.getElementById('scriptInput');
 
-        // Moonsec Dumper implementation
-        function moonsecDumper() {
-            const output = "yes.txt";
+        // Function to handle Moonsec Dumper
+        function moonsecDumper(script) {
             const Credits = "\n" + `
 
           _____                   _______                   _____           _______                   _____                    _____                    _____          
@@ -52,20 +61,19 @@
      /:::/\\:::\\    \\         /:::/~~\\:::\\    \\         /:::/    /      /:::/~~\\:::\\    \\         /:::/\\:::\\    \\          /:::/\\:::\\    \\          /:::/    /          
     /:::/__\\:::\\    \\       /:::/    \\:::\\    \\       /:::/    /      /:::/    \\:::\\    \\       /:::/  \\:::\\    \\        /:::/__\\:::\\    \\        /:::/____/           
     \\:::\\   \\:::\\    \\     /:::/    / \\:::\\    \\     /:::/    /      /:::/    / \\:::\\    \\     /:::/    \\:::\\    \\      /::::\\   \\:::\\    \\       |::|    |            
-  ___\\:::\\   \\:::\\    \\   /:::/____/   \\:::\\____\\   /:::/    /      /:::/____/   \\:::\\____\\   /:::/    / \\:::\\    \\    /::::::\\   \\:::\\    \\      |::|    |     _____  
- /\\   \\:::\\   \\:::\\    \\ |:::|    |     |:::|    | /:::/    /      |:::|    |     |:::|    | /:::/    /   \\:::\\ ___\\  /:::/\\:::\\   \\:::\\    \\     |::|    |    /\\    \\ 
-/::\\   \\:::\\   \\:::\\____\\|:::|____|     |:::|    |/:::/____/       |:::|____|     |:::|    |/:::/____/     \\:::|    |/:::/__\\:::\\   \\:::\\____\\    |::|    |   /::\\____\\
-\\:::\\   \\:::\\   \\::/    / \\:::\\    \\   /:::/    / \\:::\\    \\        \\:::\\    \\   /:::/    / \\:::\\    \\     /:::|____|\\:::\\   \\:::\\   \\::/    /    |::|    |  /:::/    /
- \\:::\\   \\:::\\   \\::/____/   \\:::\\    \\ /:::/    /   \\:::\\    \\        \\:::\\    \\ /:::/    /   \\:::\\    /:::/    /    \\:::\\   \\:::\\   \\/____/     |::|    | /:::/    / 
-  \\:::\\   \\:::\\____\\        \\:::\\    /:::/    /     \\:::\\    \\        \\:::\\__/:::/    /     \\:::\\  /:::/    /      \\:::\\   \\:::\\____\\        |::|____|/:::/    /  
-   \\:::\\  /:::/    /         \\::::::::/    /         \\:::\\    \\        \\::::::::/    /       \\:::\\  /:::/    /        \\:::\\   \\:::\\____\\        |:::::::::::/    /   
-    \\:::\/:::/    /           \\::::::/    /           \\:::\\    \\        \\::::::/    /         \\::::::/    /          \\:::\\    \\                                  
-     \\::::::/    /             \\::::/    /             \\:::\\    \\        \\::/____/             \\::::/    /            \\:::\\____\\                                 
-      \\::::/    /               \\::/____/               \\::/    /         ~~                      \\::/    /              \\::/    /                                 
-       \\::/    /                 ~~                      \\::/    /                                   ~~                       \\::/    /                                 
-        \\____/                                           \\____/                                   ~~                       \\____/                                  
+  ___\\:::\\   \\:::\\    \\   /:::/____/   \\:::\\____\\   /:::/    /      /:::/____/   \\:::\\____\\   /:::/    / \\:::\\    \\    /:::/\\:::\\   \\:::\\    \\     |::|    |    _____  
+ /\\   \\:::\\   \\:::\\    \\ |:::|    |     |:::|    | /:::/    /      |:::|    |     |:::|    | /:::/    /   \\:::\\ ___\\  /:::/\\:::\\   \\:::\\    \\     |::|    |   /\\    \\ 
+/::\\   \\:::\\   \\:::\\____\\|:::|____|     |:::|    |/:::/____/       |:::|____|     |:::|    |/:::/____/     \\:::|    |/:::/__\\:::\\   \\:::\\____\\    |::|    |  /::\\____\\
+\\:::\\   \\:::\\   \\::/    / \\:::\\    \\   /:::/    / \\:::\\    \\        \\:::\\    \\   /:::/    / \\:::\\    \\     /:::|____|\\:::\\   \\:::\\   \\::/    /    |::|    | /:::/    /
+ \\:::\\   \\:::\\   \\::/____/   \\:::\\    \\ /:::/    /   \\:::\\    \\        \\:::\\    \\ /:::/    /   \\:::\\    /:::/    /    \\:::\\   \\:::\\____\\        |::|____|/:::/    /  
+  \\:::\\  /:::/    /         \\::::::::/    /         \\:::\\    \\        \\::::::::/    /         \\:::\\  /:::/    /        \\:::\\   \\:::\\____\\        |:::::::::::/    /   
+   \\:::\/:::/    /           \\::::::/    /           \\:::\\    \\        \\::::::/    /           \\::::::/    /          \\:::\\    \\                                  
+    \\::::::/    /             \\::::/    /             \\:::\\    \\        \\::/____/             \\::::/    /            \\:::\\____\\                                 
+     \\::::/    /               \\::/____/               \\::/    /                                   ~~                       \\::/    /                                 
+      \\::/    /                 ~~                      \\::/    /                                   ~~                       \\____/                                  
+       \\____/                                           \\____/                                   ~~                       \\____/                                  
                                                                                                                                            
-                                                                    Moonsec V3 Dumper made by Solodev
+                                                                    Moonsec V3 Dumper
 `;
 
             const functionCode = `
@@ -110,11 +118,12 @@ function unpack(...)
 end 
 `;
 
-            outputDiv.textContent += functionCode;
+            // Append user script to the function code
+            return functionCode + "\n" + script;
         }
 
-        // LuaOBCFAutor Dumper implementation
-        function luaobfcautorDumper() {
+        // Function to handle LuaOBCFAutor Dumper
+        function luaobfcautorDumper(script) {
             const functionCode = `
 local old = table 
 table = {}
@@ -127,24 +136,20 @@ end
 table.insert = old.insert
 `;
 
-            outputDiv.textContent += functionCode;
+            // Append user script to the function code
+            return functionCode + "\n" + script;
         }
-
-        // Event listener for dumper selection
-        document.querySelectorAll('input[name="dumper"]').forEach((elem) => {
-            elem.addEventListener('change', function() {
-                outputDiv.textContent = ''; // Clear output on change
-            });
-        });
 
         // Dump button functionality
         document.getElementById('dumpButton').onclick = () => {
             const selectedDumper = document.querySelector('input[name="dumper"]:checked').value;
+            const userScript = scriptInput.value; // Get user script input
             outputDiv.textContent = ''; // Clear previous output
+            
             if (selectedDumper === 'moonsec') {
-                moonsecDumper(); // Execute Moonsec Dumper
+                outputDiv.textContent = moonsecDumper(userScript); // Execute Moonsec Dumper
             } else {
-                luaobfcautorDumper(); // Execute LuaOBCFAutor Dumper
+                outputDiv.textContent = luaobfcautorDumper(userScript); // Execute LuaOBCFAutor Dumper
             }
         };
 
