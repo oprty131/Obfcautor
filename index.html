@@ -78,9 +78,10 @@
             }).join('..'); // Concatenate with Lua string concatenation
         }
 
-        // Obfuscate identifiers, making all variables and function names random
+        // Obfuscate the function and variable names
         function obfuscateIdentifiers(script) {
             return script.replace(/(\w+)/g, function (match) {
+                // Avoid replacing built-in functions and keywords
                 if (!["string", "math", "function", "local", "end", "if", "then", "else", "for", "while", "do", "print"].includes(match)) {
                     return generateRandomString(8); // Rename identifiers
                 }
@@ -91,7 +92,7 @@
         // Generate a large number of dummy functions to inflate the size of the output
         function addDummyFunctions(script) {
             let dummyFunctions = '';
-            for (let i = 0; i < 10; i++) {
+            for (let i = 0; i < 20; i++) {
                 dummyFunctions += `function ${generateRandomString(8)}() end\n`; // Generate dummy function
             }
             return dummyFunctions + script;
@@ -101,12 +102,9 @@
         function addComplexControlFlow(script) {
             return `
                 if math.random() < 0.5 then 
-                    for i = 1, 100 do
-                        if i % 5 == 0 then
-                            local r = math.random()
-                            if r < 0.5 then
-                                break
-                            end
+                    for i = 1, 10 do
+                        if i % 2 == 0 then
+                            local x = i * 2
                         end
                     end
                 end
