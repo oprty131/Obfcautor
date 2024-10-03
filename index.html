@@ -50,7 +50,7 @@
 
         function stringToBinary(string) {
             return string.split('').map(char => {
-                return ('0000000' + char.charCodeAt(0).toString(2)).slice(-8);
+                return ('00000000' + char.charCodeAt(0).toString(2)).slice(-8);
             }).join(' ');
         }
 
@@ -71,17 +71,11 @@
                 obfuscated += `local ${customVarName}${randomString(8)} = "${binaryString}"\n`;
             }
 
-            obfuscated += `local ${binaryVarName} = loadstring(table.concat({\\n`;
+            obfuscated += `local ${binaryVarName} = loadstring(table.concat({\n`;
 
             // Adding the loadstring payload
-            for (let i = 0; i < binaryString.length; i += 8) {
-                obfuscated += `"\\"..string.char(${parseInt(binaryString.substr(i, 8), 2)}).."\\"`;
-                if (i + 8 < binaryString.length) {
-                    obfuscated += ', ';
-                }
-            }
-
-            obfuscated += `}))()\n`;
+            const binaryArray = binaryString.split(' ').map(b => `string.char(${parseInt(b, 2)})`).join(', ');
+            obfuscated += `${binaryArray}\n}))()\n`;
 
             obfuscated += `if type(${binaryVarName}) == "function" then\n`;
             obfuscated += `    ${binaryVarName}()\n`;
