@@ -78,15 +78,39 @@
             }).join('..'); // Concatenate with Lua string concatenation
         }
 
-        // Obfuscate the function and variable names
+        // Obfuscate identifiers, making all variables and function names random
         function obfuscateIdentifiers(script) {
             return script.replace(/(\w+)/g, function (match) {
-                // Avoid replacing built-in functions and keywords
-                if (!["string", "print", "math", "function", "local", "end", "if", "then", "else", "for", "while", "do"].includes(match)) {
+                if (!["string", "math", "function", "local", "end", "if", "then", "else", "for", "while", "do", "print"].includes(match)) {
                     return generateRandomString(8); // Rename identifiers
                 }
                 return match;
             });
+        }
+
+        // Generate a large number of dummy functions to inflate the size of the output
+        function addDummyFunctions(script) {
+            let dummyFunctions = '';
+            for (let i = 0; i < 10; i++) {
+                dummyFunctions += `function ${generateRandomString(8)}() end\n`; // Generate dummy function
+            }
+            return dummyFunctions + script;
+        }
+
+        // Add complex control flow
+        function addComplexControlFlow(script) {
+            return `
+                if math.random() < 0.5 then 
+                    for i = 1, 100 do
+                        if i % 5 == 0 then
+                            local r = math.random()
+                            if r < 0.5 then
+                                break
+                            end
+                        end
+                    end
+                end
+                ${script}`;
         }
 
         // Add a custom comment at the start of the script
@@ -107,11 +131,14 @@
                 return `decryptStr(${encryptedStr})`; // Replace strings with decryption calls
             });
 
-            // Step 3: Add the comment at the start
-            obfuscatedScript = addComment(obfuscatedScript);
+            // Step 3: Add dummy functions to inflate size
+            obfuscatedScript = addDummyFunctions(obfuscatedScript);
 
-            // Step 4: Replace print statements with obfuscated ones
-            obfuscatedScript = obfuscatedScript.replace(/print/g, generateRandomString(8)); // Obfuscate 'print' function calls
+            // Step 4: Add complex control flow
+            obfuscatedScript = addComplexControlFlow(obfuscatedScript);
+
+            // Step 5: Add the comment at the start
+            obfuscatedScript = addComment(obfuscatedScript);
 
             return obfuscatedScript;
         }
