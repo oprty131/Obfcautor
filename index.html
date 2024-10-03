@@ -20,6 +20,7 @@
             color: white;
             border: none;
             cursor: pointer;
+            margin-right: 5px;
         }
         button:hover {
             background-color: #45a049;
@@ -30,12 +31,13 @@
     <h1>Lua Script Obfuscator</h1>
     <textarea id="luaScript" placeholder="Enter your Lua script here..."></textarea>
     <button onclick="obfuscateLua()">Obfuscate Script</button>
+    <button onclick="copyToClipboard()">Copy Obfuscated Script</button>
+    <button onclick="downloadFile()">Download Obfuscated Script</button>
     <h3>Obfuscated Script:</h3>
     <textarea id="obfuscatedScript" readonly></textarea>
 
     <script>
         function encodeBase64(data) {
-            // Base64 encode a binary string
             return btoa(String.fromCharCode.apply(null, data));
         }
 
@@ -48,7 +50,8 @@
             // Step 2: Create a custom encoding for the obfuscated script
             let encodedScript = encodeBase64(compressedScript);
 
-            // Step 3: Format the final obfuscated Lua script
+            // Step 3: Generate a randomized obfuscated Lua script
+            let randomKey = Math.random().toString(36).substring(2, 15); // Generate a random string key
             let finalObfuscatedScript = `
 return (function(Ax, Ck, T1, T2, X4, C5, Xy)
     local a = Ax
@@ -105,7 +108,7 @@ return (function(Ax, Ck, T1, T2, X4, C5, Xy)
 
     local p4 = fromstring(dec('` + encodedScript + `'))
     return lzw_decompress(p4)
-end)('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/')
+end)('${randomKey}')
 `;
 
             document.getElementById('obfuscatedScript').value = finalObfuscatedScript;
@@ -130,6 +133,26 @@ end)('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/')
             }
             out.push(phrase.length > 1 ? dictionary[phrase] : phrase.charCodeAt(0));
             return out;
+        }
+
+        function copyToClipboard() {
+            const obfuscatedScript = document.getElementById('obfuscatedScript');
+            obfuscatedScript.select();
+            document.execCommand('copy');
+            alert('Obfuscated script copied to clipboard!');
+        }
+
+        function downloadFile() {
+            const obfuscatedScript = document.getElementById('obfuscatedScript').value;
+            const blob = new Blob([obfuscatedScript], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'obfuscated_script.lua';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
         }
     </script>
 </body>
